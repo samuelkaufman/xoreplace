@@ -9,13 +9,14 @@
 //1011000
 //1011010
 
-//The big O notation of this algorithm is O(2^n) where n is the number of Xs in the pattern.
+//The big O notation of this algorithm is O(2^n) where n is the number of Xs in the pattern, ie each additional X roughly doubles the max runtime.
 package xoreplace
 
 import (
 	"fmt"
-	"log"
+	"io"
 	"math"
+	"os"
 	"strings"
 )
 
@@ -23,13 +24,18 @@ type XoReplace struct {
 	baseString     string
 	numOccurrences int
 	parts          []string
+	outFh          io.Writer
 }
 
-func New(baseString string) *XoReplace {
+func New(baseString string, outFh io.Writer) *XoReplace {
+	if outFh == nil {
+		outFh = os.Stdout
+	}
 	parts := strings.Split(baseString, "X")
 	return &XoReplace{
 		baseString:     baseString,
 		numOccurrences: len(parts) - 1,
+		outFh:          outFh,
 		//		numOccurrences: strings.Count(baseString, "X"),
 		parts: parts,
 	}
@@ -43,26 +49,17 @@ func (x *XoReplace) PrintFor(i int) {
 	//	var b strings.Builder
 
 	for i := range x.parts {
-		fmt.Print(x.parts[i])
+		fmt.Fprint(x.outFh, x.parts[i])
 		if i < x.numOccurrences {
-			fmt.Printf("%s", []byte{binString[i]})
+			fmt.Fprintf(x.outFh, "%s", []byte{binString[i]})
 		}
 	}
-	fmt.Print("\n")
+	fmt.Fprint(x.outFh, "\n")
 }
 
 func (x *XoReplace) Run() {
-	log.Println("Printing out combinations for", x.baseString)
 	max := int(math.Pow(2, float64(x.numOccurrences)))
 	for i := 0; i < max; i++ {
 		x.PrintFor(i)
 	}
 }
-
-//running time,
-//X0 = 2
-//0X = 2
-// XX0 = 3
-// X0X = 3
-//for a string with n Xs it writes 2n+1 times.
-//So the whole operation should take (2^n+1)*2n+1
